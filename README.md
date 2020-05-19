@@ -1,2 +1,4 @@
 # bayesff
 Bayesian Failure Forecasting with Stan
+
+Classical approaches to failure forecasting using the Weibull or the Log-normal distribution utilize median rank regression (MRR) or maximum likelihood estimation (MLE) to estimate distribution parameters. These methods only allow for calculation of confidence bounds, which, in cases where a large proportion of data are censored, are extremely broad. No distribution information about the parameters themselves can be obtained in this way, which renders predictions based on MRR or MLE shallow at best and strongly biased at worst. In this article, we discuss the advantages and results of incorporating prior engineering knowledge and the lack thereof into models for the prediction of engine failures in a bayesian context. The goal of this article is to unify many different influences on lifetime data into one robust framework and remove undocumented engineering decisions from forecasting. 
