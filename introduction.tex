@@ -1,0 +1,21 @@
+The main goal of reliability and statistical analysis for the prediction of life, risk and cost is the estimation of expected failures in a given time frame. To make these predictions, a distribution assumption is needed. In the simplest case, it is assumed that the lifetime data at hand are independent samples from a suited distribution. A distribution that has been widely used in the fields of engineering is the Weibull distribution. 
+\begin{equation}
+f(x;\lambda ,k)={\begin{cases}{\frac {k}{\lambda }}\left({\frac {x}{\lambda }}\right)^{k-1}e^{-(x/\lambda )^{k}}&x\geq 0, \\ 0&x<0\end{cases}}
+\end{equation}
+where $k > 0$ is the shape parameter and $\lambda > 0$ is the scale parameter of the distribution. Because testing parts until they fail is often no longer an option for complex machines such as aeroplane engines, due to time or cost restrictions, the given data are often heavily right censored. The simulated example fleet this article uses, consists of 1012 censored life times e.g. Engines that have not yet failed and 11 non-censored lifetimes e.g. Engines that failed and reached the end of their lifespan. Perhaps the most well known way of dealing with the challenge of heavily censored data has been popularized first by Waloddi Weibull in \cite{waloddiweibull}. Here the failure times are sorted by Rank and then plotted onto a log-transformed canvas in according to their ranking and life times. If the assumption of a two parameter Weibull distribution is true, the failure times will all fall on a straight line on this canvas. 
+\begin{figure}
+    \centering
+    \includegraphics{}
+    \caption{Caption}
+    \label{fig:weibullfit}
+\end{figure}
+
+This method has the benefit of being a very fast way to check the underlying distribution assumption, as well as getting rough estimates for the parameters of this distribution. While pivotal confidence bounds can be constructed for the line fit with MRR, they are often very broad and give no information about the marginal distributions of the parameters. Also, because MRR omits the censored data points and thus disregards the information present in the part of the fleet that is still ``alive'' the parameter estimates are often overly pessimistic. \\
+Newer maximum likelihood based methods for censored data utilize all information present in the data, but also only yield interval based estimates for the shape and scale parameters that are very broad for heavily censored data. 
+\begin{figure}
+    \centering
+    \includegraphics{}
+    \caption{Caption}
+    \label{fig:mleintervalls}
+\end{figure}
+Further, the shape and scale point estimates used in forecasting tend to vary greatly when new failure times are introduced or removed from the data requiring analyses to be continuously updated with new information. As the analyst is most concerned about the expected new failure cases in a given time frame, and these estimates are depend strongly on the fleet distribution parameters, these levels of variation should best be incorporated into the forecasting models themselves. Another reason why modeling not only point or interval estimates, but the complete marginal distributions of the Weibull parameters is useful, becomes apparent when considering other influences on the fleet. In times of high demand and low downtime the fleet may be subject to increased stress while in times of recession or a global crisis most of the fleet will not be in service. As is shown in section \ref{} these varying usage times can be understood as variation of the Weibull parameters themselves, rendering the modeling process more transparent and easier to interpret in the process. 
