@@ -5,7 +5,7 @@ f(x;\lambda ,k)={\begin{cases}{\frac {k}{\lambda }}\left({\frac {x}{\lambda }}\r
 where $k > 0$ is the shape parameter and $\lambda > 0$ is the scale parameter of the distribution. Because testing parts until they fail is often no longer an option for complex machines such as aeroplane engines, due to time or cost restrictions, the given data are often heavily right censored. The simulated example fleet this article uses, consists of 1012 censored life times e.g. Engines that have not yet failed and 11 non-censored lifetimes e.g. Engines that failed and reached the end of their lifespan. Perhaps the most well known way of dealing with the challenge of heavily censored data has been popularized first by Waloddi Weibull in \cite{waloddiweibull}. Here the failure times are sorted by Rank and then plotted onto a log-transformed canvas in according to their ranking and life times. If the assumption of a two parameter Weibull distribution is true, the failure times will all fall on a straight line on this canvas. 
 \begin{figure}
     \centering
-    \includegraphics{}
+    %\includegraphics{}
     \caption{Caption}
     \label{fig:weibullfit}
 \end{figure}
@@ -14,7 +14,7 @@ This method has the benefit of being a very fast way to check the underlying dis
 Newer maximum likelihood based methods for censored data utilize all information present in the data, but also only yield interval based estimates for the shape and scale parameters that are very broad for heavily censored data. 
 \begin{figure}
     \centering
-    \includegraphics{}
+    %\includegraphics{}
     \caption{Caption}
     \label{fig:mleintervalls}
 \end{figure}
