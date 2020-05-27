@@ -1,0 +1,86 @@
+This section give a brief overview of the classical methods used for estimation of Weibull parameters, as well as the foundations of Bayesian inference with Stan and discusses the Simulation performed to estimate the amount of expected future failures for a given fleet.
+\subsection{Median Rank Regression}
+
+The two approaches to the estimation of Weibull parameters today are median rank regression (MRR) and maximum likelihood estimation (MLE). MRR gained popularity among engineers, as it is based on ordinary least squares (OLS) and yields an appealing line through the failure points present in the data, that can be used to calculate an $R^{2}$ value to assess the overall fit of the model to the data. Apart from being easier to interpret, MRR is also very straightforward to program and produces point estimates for the parameters in an instant. Most statisticians, however, used or advocated the use of MLE because of its well-known distributional optimality properties in ``large samples''. \cite{mlandmrrcomparison} The probability plotting method invented by \cite{herd1960} has been widely spread for point estimates of Weibull parameters, since the results tend to be more conservative. This is only the case, however, because MRR disregards information present in the censored data. Further, MRR is a linear method and thus subject to ``leverage points''; extreme observations that have large variance. This underscores another central problem with MRR, namely, the central constant variance assumption of linear regression may be violated in extreme value cases.
+\subsection{Maximum Likelihood Estimation}
+
+Modern statistical software such as R \cite{Rlanguage} provides prebuilt procedures for parameter estimation using MLE in packages such as ``WeibullR'' \cite{weibullr} or ``Weibulltools'' \cite{weibulltools}. Estimation methods such as the method of moments or OLS based approaches such as MRR taught in introductory statistics courses cannot or should not be used with complicated data (e.g., censored data). \cite{mlandmrrcomparison2} Even in more complex models, ML estimators have optimal properties given large enough samples. Another advantage of MLE is that it can be applied even for censored data. The Proportional Hazards Model for example simply extends the likelihood function used in classical MLE to incorporate a term for censored observations. This can even be further extended to include regularization terms common for regression problems in high dimensional data. While both MRR and MLE allow the construction of confidence intervals for the parameter estimations, both pivotal or likelihood ratio approaches only yield point estimates for the bounds of these intervals. No further information about the marginal distribution of the Weibull parameters can be obtained in this way. This is especially disadvantageous in the context of performing fleet simulations in order to assess risk and expected events based on fleet lifetimes. As is depicted in figure [reference], using the values at the confidence bounds for simulation leads to unrealistic results that are impossible to justify. Another (minor) advantage of MLE is its applicability in cases where only one failure case is present. The censored data can be used to obtain ML estimates, for MRR a minimum of two uncensored points is needed. Because for time censoring there exists always a positive probability of zero failures \cite{mlandmrrcomparison3} other approaches are needed here. It should also not be left unmentioned, that point estimates by themselves are useful only in a very limited manner. The quantification of uncertainty is of highest interest, particularly in reliability applications where decisions about safety are to be made based on limited data and prior information about the materials or parts at hand. The most elegant way of incorporating prior information into a statistical model that allows profound assessment of uncertainty is Bayesian Inference.  
+
+\subsection{Bayesian Inference}
+
+The core idea of Bayesian Inference is the combination of a Prior assumption about the data generating process with the likelihood information present in the data, to obtain not only point estimates for the parameters of the data, but the full posterior distributions for the parameters. According to Bayes' rule one can calculate the posterior distribution analytically by solving the following: 
+\begin{equation}
+    Bayes' Rule Here
+\end{equation}
+In the simplest of cases, the posterior distribution has a closed form solution and can be obtained analytically, but for more complex models, or when no conjugate priors are used, the integral in the denominator is omitted and the following relationship is used to solve for the posterior distributions numerically. 
+\begin{equation}
+    Bayes Proportion Here
+\end{equation}
+In the case of modelling life time data based on Weibull, or other suitable distributions, the likelihood term $Term$ is obtained from the data, and the priors for the parameters should be picked from strictly non negative distributions such as the Gamma or Log-Normal distributions, as negative life values (for cases such as shelf life etc.) are excluded from this analysis. Further considerations for the choice of priors can be found in the next subsection. \\
+The most common approach to numerically solve for the posterior distribution is to construct Markov Chains that exhibit detailed balance and converge to the posterior distribution as their stationary distribution. Algorithms like Random Walk Metropolis-Hastings (RWMH) need to be tuned expertly and monitored for convergence to guarantee consistent results. Further, RWMH struggles with high dimensional or strongly curved spaces, which can cause the sampler to take a very long time to convergence. As is depicted in figure $reference$, Weibull likelihood functions can be curved and roughly shaped like a banana, thus RWMH or similar samplers should be applied with care. Another problem with this approach is that most samplers provided in R do not contain the methods needed to model a Weibull likelihood. A probabilistic programming language that allows for such model specifications and also features a robust sampler that requires minimal tuning is Stan \cite{stan}. Stan allows for great flexibility in model specification. An example of estimating uncensored Weibull parameters, for example, looks like the following: 
+\begin{verbatim}
+// The input data is a vector 'y' 
+// of length 'N'.
+data {
+  int<lower=0> N;
+  vector[N] y;
+}
+
+// Shape and scale parameters of the
+// Weibull distribution.
+parameters {
+  real<lower=0> shape;
+  real<lower=0> scale;
+}
+
+// The model to be estimated. The 
+// lifetimes 'y' are assumed to be
+// Weibull distributed.
+model {
+  shape ~ gamma(0.0001, 0.0001);
+  scale ~ gamma(0.0001, 0.0001);
+  y ~ weibull(shape, scale);
+}
+\end{verbatim}
+This simple model is equivalent to the maximum likelihood specification for uncensored data. It features ``uninformative'' or ``diffuse'' Gamma priors for both shape and scale parameters. While the flexibility of Stan is already a convincing argument, the biggest advantage is its default sampler, the ``No-U-Turn Sampler'' (NUTS). This sampler combines Hamiltonian Monte Carlo (HMC) \cite{betancourt1} with the No-U-Turn approach proposed by Gelman et al. in \cite{NUTS}. In short, this sampler uses a cross product criterion to determine if the Hamiltonian path is turning back towards its starting location, which drastically increases the speed at which the Markov Chains explore the posterior space. Not only is this method robust in high dimensional models, it also requires only minimal tuning. Further, Stan code can be constructed programmatically through Stans various interfaces to other programming language such as RStan \cite{rstan}, which makes it perfect for interactive statistical analysis and simulation. 
+
+\subsection{Priors and Censored Data}
+The choice of prior distributions is of course dependent on the model. In the case of modeling lifetime data that is assumed to be Weibull distributed, the shape and scale parameters are restricted to be both positive and continuous. For general model specification it is often a good strategy to start off with weakly informative priors such as the very broad gamma priors presented in the Stan code above. The idea here is, that the cost of setting a prior that is too narrow is higher than the cost of setting a broader prior. If a lot of prior knowledge is available (like information about the materials at hand) the priors can then be defined in a less diffuse way like in the code below. Not only do informative priors yield tighter highest posterior density (HPD) intervals for the parameter distributions, but also aid the sampler in converging as quickly as possible. As depicted in figure $Reference$ the informative priors can also help in cases where little data is available. Of course the list of possible prior distributions for scale and shape parameters is long, but the use of Gamma priors is recommended. \cite{gammaprior} \\
+Incorporating censored data into a model specified in Stan is very straightforward. The censored values can simply be ``integrated out'' as presented in \cite{censoreddatastan}. This leads to the following model specification: 
+\begin{verbatim}
+// The input data are two vectors 'yobs'
+// and 'ycen' of observed and censored 
+// data with corresponding lengths. 
+data {
+  int<lower=0> Nobs;
+  vector[Nobs] yobs;
+  int<lower=0> Ncen;
+  vector[Ncen] ycen;
+}
+
+// Shape and scale parameters of the
+// Weibull distribution.
+parameters {
+  real<lower=0> shape;
+  real<lower=0> scale;
+}
+
+// The model to be estimated. 
+// Lifetimes 'y' are assumed to be
+// Weibull distributed. 
+model {
+  shape ~ gamma(2.5, 1);
+  scale ~ gamma(1, 0.0001);
+  target += weibull_lpdf(yobs | shape, 
+                         scale);
+  target += weibull_lccdf(ycen | shape, 
+                          scale);
+}
+\end{verbatim}
+Here the total 
+
+\subsection{Simulation of Expected Failures}
+
+The Statistical way of incorporating engineering knowledge into a model 
+
+$https://jrnold.github.io/bayesian_notes/$
